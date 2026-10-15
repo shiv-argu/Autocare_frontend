@@ -6,6 +6,12 @@ import Home from './pages/Home';
 import { ThemeProvider } from './context/ThemeContext';
 import ThemeButton from './components/ThemeButton';
 import Customers from './pages/Customers';
+import CustomerVehicles from './pages/CustomerVehicles';
+import Mechanics from './pages/Mechanics';
+import ServiceTypes from './pages/ServiceTypes';
+import ServiceRequests from './pages/ServiceRequests';
+import ServiceRequestDetail from './pages/ServiceRequestDetail';
+
 
 
 export default function App() {
@@ -21,6 +27,12 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
           <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
+          <Route path="/customers/:id/vehicles" element={<ProtectedRoute><CustomerVehicles /></ProtectedRoute>} />
+          <Route path="/mechanics" element={<ProtectedRoute><Mechanics /></ProtectedRoute>} />
+          <Route path="/service-types" element={<ProtectedRoute><ServiceTypes /></ProtectedRoute>} />
+          <Route path="/service-requests" element={<ProtectedRoute><ServiceRequests /></ProtectedRoute>} /> 
+          <Route path="/service-requests/:id" element={<ProtectedRoute><ServiceRequestDetail /></ProtectedRoute>} />
+      
         </Routes>
       </BrowserRouter>
       </ThemeProvider>

@@ -9,8 +9,11 @@ export default function Home() {
         <div>
             <h2>Logged in</h2>
             
-            <nav>
-                 <Link to="/customers">Customers</Link>
+            <nav style={{ display: 'flex', gap: 12 }}>
+                <Link to="/customers">Customers</Link>
+                <Link to="/mechanics">Mechanics</Link>
+                <Link to="/service-types">Service Types</Link>
+                <Link to="/service-requests">Service Requests</Link>
             </nav>
             <button onClick={logout}>Logout</button>
             <FetchData />

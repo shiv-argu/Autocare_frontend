@@ -1,5 +1,6 @@
 import api from './client';
 
+
 export async function login(email,password)
 {
     const form = new URLSearchParams();
@@ -9,3 +10,4 @@ export async function login(email,password)
     return res.data.access_token;
 }
 
+export const getMe = () => api.get('/auth/me').then((r) => r.data);

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getCustomers, createCustomer } from '../api/customers';
+import { Link } from 'react-router-dom';
 
 export default function Customers() {
   const [customers, setCustomers] = useState([]);
@@ -14,9 +15,10 @@ export default function Customers() {
     }
   };
 
-  useEffect(() => {
+  useEffect(() => 
+    {
     load();
-  }, []);
+    }, []);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -53,7 +55,7 @@ export default function Customers() {
           {customers.map((c) => (
             <tr key={c.customer_id}>
               <td>{c.customer_id}</td>
-              <td>{c.customer_name}</td>
+              <td><Link to={`/customers/${c.customer_id}/vehicles`}>{c.customer_name}</Link></td>
               <td>{c.phone}</td>
               <td>{c.email}</td>
             </tr>
