@@ -17,8 +17,12 @@ const errMsg = (e, fallback) => e.response?.data?.detail || fallback;
 export default function ServiceRequestDetail() {
   const { id } = useParams();
   const { user } = useAuth();
-  const isStaff = user?.role === 'staff';
-
+  let isStaff = false;
+  if (user && user.role === 'staff')
+    {
+  isStaff = true;
+    }
+ 
   const [request, setRequest] = useState(null);
   const [vehicle, setVehicle] = useState(null);
   const [mechanic, setMechanic] = useState(null);
@@ -32,7 +36,9 @@ export default function ServiceRequestDetail() {
   const [svcForm, setSvcForm] = useState({ service_id: '', cost: '' });
   const [spareForm, setSpareForm] = useState({ spare_id: '', quantity: 1, price: '' });
 
-  const load = async () => {
+  const load = async () => 
+    {
+
     try {
       const req = await getServiceRequest(id);
       setRequest(req);
@@ -45,6 +51,7 @@ export default function ServiceRequestDetail() {
         getSpares(),
         getBills(),
       ]);
+  
       setVehicle(veh);
       setMechanic(mech);
       setServices(svc);
@@ -112,9 +119,13 @@ export default function ServiceRequestDetail() {
   if (!request) return <p style={{ margin: 40 }}>{error || 'Loading...'}</p>;
 
   const completed = request.status === 'completed';
-  const availableServices = serviceTypes.filter((s) => !services.some((x) => x.service_id === s.service_id));
-  const availableSpares = spareCatalog.filter((s) => !spares.some((x) => x.spare_id === s.spare_id));
+const availableServices = serviceTypes.filter((s) => 
+  !services.some((x) => x && Number(x.service_id) === Number(s.service_id))
+);
 
+const availableSpares = spareCatalog.filter((s) => 
+  !spares.some((x) => Number(x.spare_id) === Number(s.spare_id))
+);
   return (
     <div style={{ maxWidth: 800, margin: '40px auto' }}>
       <Link to="/service-requests">&larr; Back to requests</Link>
@@ -189,7 +200,7 @@ export default function ServiceRequestDetail() {
           <select value={spareForm.spare_id} onChange={onPickSpare} required>
             <option value="">Select spare</option>
             {availableSpares.map((s) => (
-              <option key={s.spare_id} value={s.spare_id}>{s.spare_name}</option>
+              <option key={s.spare_id} value={s.spare_id}>{s.spare_name} (stock: {s.stock})</option>
             ))}
           </select>
           <input type="number" min="1" placeholder="Qty" value={spareForm.quantity}
@@ -203,7 +214,7 @@ export default function ServiceRequestDetail() {
       <h3>Bill</h3>
       {bill ? (
         <p>
-          Bill #{bill.bill_id}: <b>{bill.amount}</b> ({bill.status}), dated {bill.bill_date}
+          Bill {bill.bill_id}: <b>{bill.amount}</b> ({bill.status}), dated {bill.bill_date}
         </p>
       ) : completed && isStaff ? (
         <button onClick={() => run(() => generateBill(id), 'Failed to generate bill')}>

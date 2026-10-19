@@ -16,7 +16,7 @@ export default function Home() {
                 <Link to="/service-requests">Service Requests</Link>
             </nav>
             <button onClick={logout}>Logout</button>
-            <FetchData />
+            {/* <FetchData /> */}
         </div>
     );
 }
