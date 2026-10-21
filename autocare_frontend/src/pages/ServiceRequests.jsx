@@ -3,9 +3,10 @@ import { getServiceRequests, createServiceRequest } from '../api/serviceRequests
 import { getVehicles } from '../api/vehicles';
 import { getMechanics } from '../api/mechanics';
 import { Link } from 'react-router-dom';
-
+import { useAuth } from '../context/AuthContext';
 
 export default function ServiceRequests() {
+  const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [mechanics, setMechanics] = useState([]);
@@ -57,7 +58,7 @@ export default function ServiceRequests() {
   return (
     <div style={{ maxWidth: 800, margin: '40px auto' }}>
       <h2>Service Requests</h2>
-
+       {user?.role === 'staff' && (
       <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
         <select name="vehicle_id" value={form.vehicle_id} onChange={handleChange} required>
           <option value="">Select vehicle</option>
@@ -79,7 +80,8 @@ export default function ServiceRequests() {
 
         <button type="submit">Create request</button>
       </form>
-
+        )}
+        
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
       <table border="1" cellPadding="6" style={{ borderCollapse: 'collapse', width: '100%' }}>

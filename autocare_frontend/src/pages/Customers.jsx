@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { getCustomers, createCustomer } from '../api/customers';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Customers() {
+  const { user } = useAuth();
   const [customers, setCustomers] = useState([]);
   const [form, setForm] = useState({ customer_name: '', phone: '', email: '' });
   const [error, setError] = useState('');
+
 
   const load = async () => {
     try {
@@ -38,12 +41,14 @@ export default function Customers() {
     <div style={{ maxWidth: 700, margin: '40px auto' }}>
       <h2>Customers</h2>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-        <input name="customer_name" placeholder="Name" value={form.customer_name} onChange={handleChange} required />
-        <input name="phone" placeholder="Phone" value={form.phone} onChange={handleChange} />
-        <input name="email" placeholder="Email" value={form.email} onChange={handleChange} />
-        <button type="submit">Add</button>
-      </form>
+       {user?.role === 'staff' && (
+        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
+          <input name="customer_name" placeholder="Name" value={form.customer_name} onChange={handleChange} required />
+          <input name="phone" placeholder="Phone" value={form.phone} onChange={handleChange} />
+          <input name="email" placeholder="Email" value={form.email} onChange={handleChange} />
+          <button type="submit">Add</button>
+        </form>
+      )}
       
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
