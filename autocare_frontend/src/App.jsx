@@ -11,7 +11,8 @@ import Mechanics from './pages/Mechanics';
 import ServiceTypes from './pages/ServiceTypes';
 import ServiceRequests from './pages/ServiceRequests';
 import ServiceRequestDetail from './pages/ServiceRequestDetail';
-
+import Spares from './pages/Spares';
+import Bills from './pages/Bills';
 
 
 export default function App() {
@@ -32,7 +33,9 @@ export default function App() {
           <Route path="/service-types" element={<ProtectedRoute><ServiceTypes /></ProtectedRoute>} />
           <Route path="/service-requests" element={<ProtectedRoute><ServiceRequests /></ProtectedRoute>} /> 
           <Route path="/service-requests/:id" element={<ProtectedRoute><ServiceRequestDetail /></ProtectedRoute>} />
-      
+          <Route path="/spares" element={<ProtectedRoute><Spares /></ProtectedRoute>} />
+            <Route path="/bills" element={<ProtectedRoute><Bills /></ProtectedRoute>} />
+
         </Routes>
       </BrowserRouter>
       </ThemeProvider>
