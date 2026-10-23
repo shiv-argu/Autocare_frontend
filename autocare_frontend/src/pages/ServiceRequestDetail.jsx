@@ -3,8 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   getServiceRequest, updateStatus,
-  getRequestServices, addRequestService,
-  getRequestSpares, addRequestSpare,
+  getRequestServices, addRequestService, removeRequestService,
+  getRequestSpares, addRequestSpare, removeRequestSpare,
 } from '../api/serviceRequests';
 import { getVehicle } from '../api/vehicles';
 import { getMechanic } from '../api/mechanics';
@@ -119,6 +119,17 @@ export default function ServiceRequestDetail() {
   if (!request) return <p style={{ margin: 40 }}>{error || 'Loading...'}</p>;
 
   const completed = request.status === 'completed';
+    const canEdit = isStaff && !completed;
+
+  const removeService = (sid) => {
+    if (!window.confirm('Remove this service from the request?')) return;
+    run(() => removeRequestService(id, sid), 'Failed to remove service');
+  };
+
+  const removeSpare = (sid) => {
+    if (!window.confirm('Remove this spare? Its quantity will be returned to stock.')) return;
+    run(() => removeRequestSpare(id, sid), 'Failed to remove spare');
+  };
 const availableServices = serviceTypes.filter((s) => 
   !services.some((x) => x && Number(x.service_id) === Number(s.service_id))
 );
@@ -126,7 +137,7 @@ const availableServices = serviceTypes.filter((s) =>
 const availableSpares = spareCatalog.filter((s) => 
   !spares.some((x) => Number(x.spare_id) === Number(s.spare_id))
 );
-  return (
+return (
     <div style={{ maxWidth: 800, margin: '40px auto' }}>
       <Link to="/service-requests">&larr; Back to requests</Link>
       <h2>Service Request #{request.service_request_id}</h2>
@@ -156,12 +167,28 @@ const availableSpares = spareCatalog.filter((s) =>
 
       <h3>Services</h3>
       <table border="1" cellPadding="6" style={{ borderCollapse: 'collapse', width: '100%' }}>
-        <thead><tr><th>Service</th><th>Cost</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Service</th>
+            <th>Cost</th>
+            {isStaff && !completed && <th></th>}
+          </tr>
+        </thead>
         <tbody>
           {services.map((s) => (
             <tr key={s.service_id}>
               <td>{serviceName(s.service_id)}</td>
               <td>{s.cost}</td>
+              {isStaff && !completed && (
+                <td>
+                  <button 
+                    onClick={() => run(() => removeService(s.service_id), 'Failed to remove service')} 
+                    className="text-sm text-red-600 hover:underline"
+                  >
+                    Remove
+                  </button>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
@@ -183,13 +210,30 @@ const availableSpares = spareCatalog.filter((s) =>
 
       <h3>Spares used</h3>
       <table border="1" cellPadding="6" style={{ borderCollapse: 'collapse', width: '100%' }}>
-        <thead><tr><th>Spare</th><th>Qty</th><th>Unit price</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Spare</th>
+            <th>Qty</th>
+            <th>Unit price</th>
+            {isStaff && !completed && <th></th>}
+          </tr>
+        </thead>
         <tbody>
           {spares.map((s) => (
             <tr key={s.spare_id}>
               <td>{spareName(s.spare_id)}</td>
               <td>{s.quantity}</td>
               <td>{s.price}</td>
+              {isStaff && !completed && (
+                <td>
+                  <button 
+                    onClick={() => run(() => removeSpare(s.spare_id), 'Failed to remove spare')} 
+                    className="text-sm text-red-600 hover:underline"
+                  >
+                    Remove
+                  </button>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

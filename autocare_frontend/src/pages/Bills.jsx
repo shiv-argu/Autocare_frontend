@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getBills } from '../api/bills';
+import { useAuth } from '../context/AuthContext';
+
 
 export default function Bills() {
   const [bills, setBills] = useState([]);
   const [error, setError] = useState('');
+  const { user } = useAuth();
+  const base = user?.role === 'staff' ? '/service-requests' : '/my/requests';
 
   useEffect(() => {
     getBills()
@@ -27,7 +31,7 @@ export default function Bills() {
             <tr key={b.bill_id}>
               <td>{b.bill_id}</td>
               <td>
-                <Link to={`/service-requests/${b.service_request_id}`}>
+                <Link to={`${base}/${b.service_request_id}`}>
                   #{b.service_request_id}
                 </Link>
               </td>

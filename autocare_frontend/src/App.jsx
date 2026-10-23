@@ -1,44 +1,64 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import RoleRoute from './components/RoleRoute';
+import Layout from './components/Layout';
+import CustomerLayout from './components/CustomerLayout';
 import Login from './pages/Login';
 import Home from './pages/Home';
-import { ThemeProvider } from './context/ThemeContext';
-import ThemeButton from './components/ThemeButton';
 import Customers from './pages/Customers';
 import CustomerVehicles from './pages/CustomerVehicles';
 import Mechanics from './pages/Mechanics';
 import ServiceTypes from './pages/ServiceTypes';
+import Spares from './pages/Spares';
 import ServiceRequests from './pages/ServiceRequests';
 import ServiceRequestDetail from './pages/ServiceRequestDetail';
-import Spares from './pages/Spares';
 import Bills from './pages/Bills';
-
+import MyVehicles from './pages/MyVehicles';
+import MyRequests from './pages/MyRequests';
 
 export default function App() {
   return (
     <AuthProvider>
-      <ThemeProvider> 
       <BrowserRouter>
-      <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 1000 }}>
-            <ThemeButton />
-          </div>
-
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-          <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
-          <Route path="/customers/:id/vehicles" element={<ProtectedRoute><CustomerVehicles /></ProtectedRoute>} />
-          <Route path="/mechanics" element={<ProtectedRoute><Mechanics /></ProtectedRoute>} />
-          <Route path="/service-types" element={<ProtectedRoute><ServiceTypes /></ProtectedRoute>} />
-          <Route path="/service-requests" element={<ProtectedRoute><ServiceRequests /></ProtectedRoute>} /> 
-          <Route path="/service-requests/:id" element={<ProtectedRoute><ServiceRequestDetail /></ProtectedRoute>} />
-          <Route path="/spares" element={<ProtectedRoute><Spares /></ProtectedRoute>} />
-            <Route path="/bills" element={<ProtectedRoute><Bills /></ProtectedRoute>} />
 
+          {/*Routes for the Staff for now( split it into A NAD M */}
+          <Route
+            element={
+              <ProtectedRoute>
+                <RoleRoute role="staff"><Layout /></RoleRoute>
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/" element={<Home />} />
+            <Route path="/customers" element={<Customers />} />
+            <Route path="/customers/:id/vehicles" element={<CustomerVehicles />} />
+            <Route path="/mechanics" element={<Mechanics />} />
+            <Route path="/service-types" element={<ServiceTypes />} />
+            <Route path="/spares" element={<Spares />} />
+            <Route path="/service-requests" element={<ServiceRequests />} />
+            <Route path="/service-requests/:id" element={<ServiceRequestDetail />} />
+            <Route path="/bills" element={<Bills />} />
+          </Route>
+
+          {/* Routes for the customer */}
+          <Route
+            path="/my"
+            element={
+              <ProtectedRoute>
+                <RoleRoute role="customer"><CustomerLayout /></RoleRoute>
+              </ProtectedRoute>
+            }
+          >
+            <Route path="vehicles" element={<MyVehicles />} />
+            <Route path="requests" element={<MyRequests />} />
+            <Route path="requests/:id" element={<ServiceRequestDetail />} />
+            <Route path="bills" element={<Bills />} />
+          </Route>
         </Routes>
       </BrowserRouter>
-      </ThemeProvider>
     </AuthProvider>
   );
 }
