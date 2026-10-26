@@ -11,6 +11,8 @@ export const updateStatus = (id, status) =>
 
 export const getRequestServices = (id) =>
   api.get(`/service-requests/${id}/services`).then((r) => r.data);
+
+
 export const addRequestService = (id, data) =>
   api.post(`/service-requests/${id}/services`, data).then((r) => r.data);
 

@@ -16,6 +16,7 @@ import ServiceRequestDetail from './pages/ServiceRequestDetail';
 import Bills from './pages/Bills';
 import MyVehicles from './pages/MyVehicles';
 import MyRequests from './pages/MyRequests';
+import MechanicHome from './pages/MechanicHome';
 
 export default function App() {
   return (
@@ -24,7 +25,7 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
 
-          {/*Routes for the Staff for now( split it into A NAD M */}
+          {/* Staff area */}
           <Route
             element={
               <ProtectedRoute>
@@ -43,7 +44,7 @@ export default function App() {
             <Route path="/bills" element={<Bills />} />
           </Route>
 
-          {/* Routes for the customer */}
+          {/* Customer area */}
           <Route
             path="/my"
             element={
@@ -57,6 +58,24 @@ export default function App() {
             <Route path="requests/:id" element={<ServiceRequestDetail />} />
             <Route path="bills" element={<Bills />} />
           </Route>
+
+          {/* Mechanic area */}
+          <Route
+            path="/mechanic"
+            element={
+              <ProtectedRoute>
+                <RoleRoute role="mechanic"><MechanicHome /></RoleRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mechanic/requests/:id"
+            element={
+              <ProtectedRoute>
+                <RoleRoute role="mechanic"><ServiceRequestDetail /></RoleRoute>
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
