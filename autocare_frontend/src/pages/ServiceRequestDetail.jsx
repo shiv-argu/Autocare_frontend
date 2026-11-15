@@ -10,6 +10,9 @@ import { getMechanic } from '../api/mechanics';
 import { getServiceTypes } from '../api/serviceTypes';
 import { getSpares } from '../api/spares';
 import { getBills, generateBill } from '../api/bills';
+import { getRequestHistory } from '../api/history';
+import Timeline from '../components/Timeline';
+
 
 const errMsg = (e, fallback) => e.response?.data?.detail || fallback;
 
@@ -31,7 +34,7 @@ export default function ServiceRequestDetail() {
   const [error, setError] = useState('');
   const [svcForm, setSvcForm] = useState({ service_id: '', cost: '' });
   const [spareForm, setSpareForm] = useState({ spare_id: '', quantity: 1, price: '' });
-
+  const [history, setHistory] = useState([]);
   const load = async () => {
     try {
       const req = await getServiceRequest(id);
@@ -47,6 +50,7 @@ export default function ServiceRequestDetail() {
       setServiceTypes(types);
       setSpareCatalog(catalog);
       setBill(bills.find((b) => b.service_request_id === Number(id)) || null);
+      setHistory(await getRequestHistory(id));
     } catch (e) {
       setError(errMsg(e, 'Failed to load service request'));
     }
@@ -200,6 +204,8 @@ export default function ServiceRequestDetail() {
       ) : (
         <p>{completed ? 'No bill generated yet.' : 'Bill can be generated once the request is completed.'}</p>
       )}
+      <h3>Timeline</h3>
+      <Timeline events={history} />
     </div>
   );
 }
