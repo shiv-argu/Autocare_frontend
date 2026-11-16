@@ -28,4 +28,13 @@
   .page-title {
     @apply mb-4 text-2xl font-semibold text-gray-900;
   }
+    .btn-danger {
+    @apply inline-flex items-center justify-center rounded-md border border-red-200 bg-white px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50 cursor-pointer;
+  }
+  .field-label {
+    @apply mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500;
+  }
+  .section-title {
+    @apply mb-3 text-base font-semibold text-gray-900;
+  }
 }

@@ -1,27 +1,33 @@
-import { useEffect, useState } from 'react';
-import { getCustomers, createCustomer } from '../api/customers';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { getCustomers, createCustomer } from '../api/customers';
+
+const emptyForm = { customer_name: '', phone: '', email: '' };
 
 export default function Customers() {
   const { user } = useAuth();
-  const [customers, setCustomers] = useState([]);
-  const [form, setForm] = useState({ customer_name: '', phone: '', email: '' });
-  const [error, setError] = useState('');
+  const isStaff = user?.role === 'staff';
 
+  const [customers, setCustomers] = useState([]);
+  const [form, setForm] = useState(emptyForm);
+  const [query, setQuery] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
 
   const load = async () => {
     try {
       setCustomers(await getCustomers());
     } catch {
       setError('Failed to load customers');
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => 
-    {
+  useEffect(() => {
     load();
-    }, []);
+  }, []);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -29,50 +35,99 @@ export default function Customers() {
     e.preventDefault();
     setError('');
     try {
-      await createCustomer(form);
-      setForm({ customer_name: '', phone: '', email: '' });
+      await createCustomer({
+        customer_name: form.customer_name,
+        phone: form.phone || null,
+        email: form.email || null,
+      });
+      setForm(emptyForm);
       load();
-    } catch {
-      setError('Failed to create customer');
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to create customer');
     }
   };
 
-  return (
-    <div>
-      <h2 className="page-title">Customers</h2>
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return customers;
+    return customers.filter((c) =>
+      [c.customer_name, c.phone, c.email].some((x) => (x || '').toLowerCase().includes(q))
+    );
+  }, [customers, query]);
 
-      {user?.role === 'staff' && (
-        <form onSubmit={handleSubmit} className="card mb-6 flex flex-wrap gap-3">
-          <input className="input" name="customer_name" placeholder="Name" value={form.customer_name} onChange={handleChange} required />
-          <input className="input" name="phone" placeholder="Phone" value={form.phone} onChange={handleChange} />
-          <input className="input" name="email" placeholder="Email" value={form.email} onChange={handleChange} />
-          <button type="submit" className="btn">Add</button>
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="page-title mb-1">Customers</h2>
+          <p className="text-sm text-gray-500">Registered customers and their vehicles.</p>
+        </div>
+        <input
+          className="input w-full sm:w-72"
+          placeholder="Search by name, phone or email"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
+
+      {isStaff && (
+        <form onSubmit={handleSubmit} className="card">
+          <h3 className="section-title">Add customer</h3>
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="min-w-[12rem] flex-1">
+              <label className="field-label">Name</label>
+              <input className="input w-full" name="customer_name" placeholder="Full name" value={form.customer_name} onChange={handleChange} required />
+            </div>
+            <div className="min-w-[10rem] flex-1">
+              <label className="field-label">Phone</label>
+              <input className="input w-full" name="phone" placeholder="Phone" value={form.phone} onChange={handleChange} />
+            </div>
+            <div className="min-w-[12rem] flex-1">
+              <label className="field-label">Email</label>
+              <input className="input w-full" name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} />
+            </div>
+            <button type="submit" className="btn">Add customer</button>
+          </div>
         </form>
       )}
 
-      {error && <p className="error-text">{error}</p>}
+      {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
-      <div className="card overflow-x-auto p-0">
-        <table className="table">
-          <thead>
-            <tr><th>ID</th><th>Name</th><th>Phone</th><th>Email</th></tr>
-          </thead>
-          <tbody>
-            {customers.map((c) => (
-              <tr key={c.customer_id}>
-                <td>{c.customer_id}</td>
-                <td>
-                  <Link to={`/customers/${c.customer_id}/vehicles`} className="text-blue-600 hover:underline">
-                    {c.customer_name}
-                  </Link>
-                </td>
-                <td>{c.phone}</td>
-                <td>{c.email}</td>
+      {loading ? (
+        <p className="text-gray-500">Loading...</p>
+      ) : filtered.length === 0 ? (
+        <div className="card text-gray-600">No customers found.</div>
+      ) : (
+        <div className="card overflow-x-auto p-0">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th className="text-right">Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filtered.map((c) => (
+                <tr key={c.customer_id}>
+                  <td>
+                    <div className="font-medium text-gray-900">{c.customer_name}</div>
+                    <div className="text-xs text-gray-500">ID {c.customer_id}</div>
+                  </td>
+                  <td>{c.phone || '—'}</td>
+                  <td>{c.email || '—'}</td>
+                  <td className="text-right">
+                    <Link to={`/customers/${c.customer_id}/vehicles`} className="btn-secondary">
+                      Vehicles
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

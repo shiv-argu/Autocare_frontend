@@ -8,6 +8,7 @@ const links = [
   ['/spares', 'Spares'],
   ['/service-requests', 'Service Requests'],
   ['/bills', 'Bills'],
+  ['/vehicles', 'Vehicles'],
 ];
 
 export default function Layout() {

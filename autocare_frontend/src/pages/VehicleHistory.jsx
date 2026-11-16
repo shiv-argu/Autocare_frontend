@@ -52,9 +52,9 @@ export default function VehicleHistory() {
                 <Link to={`${ticketBase}/${t.service_request_id}`} className="font-semibold text-blue-600 hover:underline">
                   Ticket #{t.service_request_id}
                 </Link>
-                <span className="text-sm text-gray-500">{t.request_date} · {t.status}</span>
+                <span className="text-sm text-gray-500">{t.request_date}</span>
               </div>
-              <Timeline events={t.events} />
+              <Timeline events={t.events} status={t.status} />
             </div>
           ))}
         </div>

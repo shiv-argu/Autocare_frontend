@@ -18,7 +18,7 @@ import MyVehicles from './pages/MyVehicles';
 import MyRequests from './pages/MyRequests';
 import MechanicHome from './pages/MechanicHome';
 import VehicleHistory from './pages/VehicleHistory';
-
+import Vehicles from './pages/Vehicles';
 
 export default function App() {
   return (
@@ -45,6 +45,7 @@ export default function App() {
             <Route path="/service-requests/:id" element={<ServiceRequestDetail />} />
             <Route path="/bills" element={<Bills />} />
             <Route path="/vehicles/:id/history" element={<VehicleHistory />} />
+            <Route path="/vehicles" element={<Vehicles />} />
           </Route>
 
           {/* Customer area */}
