@@ -9,6 +9,7 @@ const dot = {
   spare_added: 'bg-green-500',
   spare_removed: 'bg-red-400',
   bill_generated: 'bg-amber-500',
+  bill_paid: 'bg-green-600',
 };
 
 export default function Timeline({ events, status, defaultOpen = false }) {

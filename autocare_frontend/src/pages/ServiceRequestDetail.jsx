@@ -10,10 +10,10 @@ import { getVehicle } from '../api/vehicles';
 import { getMechanic } from '../api/mechanics';
 import { getServiceTypes } from '../api/serviceTypes';
 import { getSpares } from '../api/spares';
-import { getBills, generateBill } from '../api/bills';
 import { getRequestHistory } from '../api/history';
 import Timeline from '../components/Timeline';
 import StatusBadge from '../components/StatusBadge';
+import { getBills, generateBill, payBill } from '../api/bills';
 
 const errMsg = (e, fallback) => e.response?.data?.detail || fallback;
 
@@ -121,7 +121,10 @@ export default function ServiceRequestDetail() {
     if (!window.confirm('Remove this service from the request?')) return;
     run(() => removeRequestService(id, sid), 'Failed to remove service');
   };
-
+  const payThisBill = (billId) => {
+    if (!window.confirm('Mark this bill as paid?')) return;
+    run(() => payBill(billId), 'Failed to mark bill as paid');
+  };
   const removeSpare = (sid) => {
     if (!window.confirm('Remove this spare? Its quantity will be returned to stock.')) return;
     run(() => removeRequestSpare(id, sid), 'Failed to remove spare');
@@ -131,6 +134,7 @@ export default function ServiceRequestDetail() {
 
   const completed = request.status === 'completed';
   const canEdit = (isStaff || isMechanic) && !completed;
+  const canAdd = canEdit && request.status === 'in_progress';
   const availableServices = serviceTypes.filter((s) => !services.some((x) => x.service_id === s.service_id));
   const availableSpares = spareCatalog.filter((s) => !spares.some((x) => x.spare_id === s.spare_id));
 
@@ -222,8 +226,12 @@ export default function ServiceRequestDetail() {
             </table>
           </div>
         )}
-
-        {canEdit && (
+        {canEdit && !canAdd && (
+        <p className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+           Set the status to "in progress" to add services.
+        </p>
+         )}
+        {canAdd && (
           <form onSubmit={submitService} className="mt-4 flex flex-wrap items-end gap-3 border-t border-gray-100 pt-4">
             <div className="min-w-[12rem] flex-1">
               <label className="field-label">Service</label>
@@ -287,8 +295,12 @@ export default function ServiceRequestDetail() {
             </table>
           </div>
         )}
-
-        {canEdit && (
+        {canEdit && !canAdd && (
+          <p className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+            Set the status to "in progress" to add spares.
+          </p>
+        )}
+        {canAdd && (
           <form onSubmit={submitSpare} className="mt-4 flex flex-wrap items-end gap-3 border-t border-gray-100 pt-4">
             <div className="min-w-[12rem] flex-1">
               <label className="field-label">Spare</label>
@@ -338,9 +350,14 @@ export default function ServiceRequestDetail() {
               <p className="text-3xl font-semibold text-gray-900">{bill.amount}</p>
               <p className="text-sm text-gray-500">Bill #{bill.bill_id} · {bill.bill_date}</p>
             </div>
-            <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
-              {bill.status}
-            </span>
+            <div className="flex items-center gap-3">
+              <StatusBadge status={bill.status} />
+              {bill.status !== 'paid' && !isMechanic && (
+                <button onClick={() => payThisBill(bill.bill_id)} className="btn">
+                  Mark as paid
+                </button>
+              )}
+            </div>
           </div>
         ) : completed && isStaff ? (
           <button onClick={() => run(() => generateBill(id), 'Failed to generate bill')} className="btn">
