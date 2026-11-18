@@ -19,6 +19,8 @@ import MyRequests from './pages/MyRequests';
 import MechanicHome from './pages/MechanicHome';
 import VehicleHistory from './pages/VehicleHistory';
 import Vehicles from './pages/Vehicles';
+import Signup from './pages/Signup';
+import CreateUser from './pages/CreateUser';
 
 export default function App() {
   return (
@@ -26,6 +28,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
 
           {/* Staff area */}
           <Route
@@ -46,6 +49,7 @@ export default function App() {
             <Route path="/bills" element={<Bills />} />
             <Route path="/vehicles/:id/history" element={<VehicleHistory />} />
             <Route path="/vehicles" element={<Vehicles />} />
+            <Route path="/users/new" element={<CreateUser />} />
           </Route>
 
           {/* Customer area */}

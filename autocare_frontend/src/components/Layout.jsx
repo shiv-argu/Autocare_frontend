@@ -9,6 +9,7 @@ const links = [
   ['/service-requests', 'Service Requests'],
   ['/bills', 'Bills'],
   ['/vehicles', 'Vehicles'],
+  ['/users/new', 'Add User'],
 ];
 
 export default function Layout() {
