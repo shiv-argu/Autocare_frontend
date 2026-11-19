@@ -10,10 +10,10 @@ import { getVehicle } from '../api/vehicles';
 import { getMechanic } from '../api/mechanics';
 import { getServiceTypes } from '../api/serviceTypes';
 import { getSpares } from '../api/spares';
+import { getBillForRequest, generateBill, payBill } from '../api/bills';
 import { getRequestHistory } from '../api/history';
 import Timeline from '../components/Timeline';
 import StatusBadge from '../components/StatusBadge';
-import { getBills, generateBill, payBill } from '../api/bills';
 
 const errMsg = (e, fallback) => e.response?.data?.detail || fallback;
 
@@ -33,49 +33,87 @@ export default function ServiceRequestDetail() {
   const [spareCatalog, setSpareCatalog] = useState([]);
   const [bill, setBill] = useState(null);
   const [history, setHistory] = useState([]);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
   const [svcForm, setSvcForm] = useState({ service_id: '', cost: '' });
   const [spareForm, setSpareForm] = useState({ spare_id: '', quantity: 1, price: '' });
 
-  const load = async () => {
+  // Runs once when the page opens: everything, in as few round trips as possible
+  const loadAll = async () => {
     try {
-      const req = await getServiceRequest(id);
-      setRequest(req);
-      const [veh, mech, svc, spr, types, catalog, bills, hist] = await Promise.all([
-        getVehicle(req.vehicle_id),
-        getMechanic(req.mechanic_id),
+      const [req, svc, spr, types, catalog, billData, hist] = await Promise.all([
+        getServiceRequest(id),
         getRequestServices(id),
         getRequestSpares(id),
         getServiceTypes(),
         getSpares(),
-        getBills(),
+        getBillForRequest(id),
         getRequestHistory(id),
       ]);
-      setVehicle(veh);
-      setMechanic(mech);
+      setRequest(req);
       setServices(svc);
       setSpares(spr);
       setServiceTypes(types);
       setSpareCatalog(catalog);
-      setBill(bills.find((b) => b.service_request_id === Number(id)) || null);
+      setBill(billData);
       setHistory(hist);
+
+      const [veh, mech] = await Promise.all([
+        getVehicle(req.vehicle_id),
+        getMechanic(req.mechanic_id),
+      ]);
+      setVehicle(veh);
+      setMechanic(mech);
     } catch (e) {
       setError(errMsg(e, 'Failed to load service request'));
     }
   };
 
   useEffect(() => {
-    load();
+    loadAll();
   }, [id]);
 
-  const run = async (fn, fallback) => {
+  // After an action: refetch only what that action changed (plus the timeline)
+  const refreshRequest = async () => {
+    const [req, hist] = await Promise.all([getServiceRequest(id), getRequestHistory(id)]);
+    setRequest(req);
+    setHistory(hist);
+  };
+
+  const refreshServices = async () => {
+    const [svc, hist] = await Promise.all([getRequestServices(id), getRequestHistory(id)]);
+    setServices(svc);
+    setHistory(hist);
+  };
+
+  const refreshSpares = async () => {
+    const [spr, catalog, hist] = await Promise.all([
+      getRequestSpares(id),
+      getSpares(), // stock changed
+      getRequestHistory(id),
+    ]);
+    setSpares(spr);
+    setSpareCatalog(catalog);
+    setHistory(hist);
+  };
+
+  const refreshBill = async () => {
+    const [billData, hist] = await Promise.all([getBillForRequest(id), getRequestHistory(id)]);
+    setBill(billData);
+    setHistory(hist);
+  };
+
+  const run = async (action, refresh, fallback) => {
     setError('');
+    setBusy(true);
     try {
-      await fn();
-      await load();
+      await action();
+      await refresh();
     } catch (e) {
       setError(errMsg(e, fallback));
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -96,38 +134,48 @@ export default function ServiceRequestDetail() {
 
   const submitService = (e) => {
     e.preventDefault();
-    run(async () => {
-      await addRequestService(id, {
-        service_id: Number(svcForm.service_id),
-        cost: svcForm.cost === '' ? null : Number(svcForm.cost),
-      });
-      setSvcForm({ service_id: '', cost: '' });
-    }, 'Failed to add service');
+    run(
+      async () => {
+        await addRequestService(id, {
+          service_id: Number(svcForm.service_id),
+          cost: svcForm.cost === '' ? null : Number(svcForm.cost),
+        });
+        setSvcForm({ service_id: '', cost: '' });
+      },
+      refreshServices,
+      'Failed to add service'
+    );
   };
 
   const submitSpare = (e) => {
     e.preventDefault();
-    run(async () => {
-      await addRequestSpare(id, {
-        spare_id: Number(spareForm.spare_id),
-        quantity: Number(spareForm.quantity),
-        price: spareForm.price === '' ? null : Number(spareForm.price),
-      });
-      setSpareForm({ spare_id: '', quantity: 1, price: '' });
-    }, 'Failed to add spare');
+    run(
+      async () => {
+        await addRequestSpare(id, {
+          spare_id: Number(spareForm.spare_id),
+          quantity: Number(spareForm.quantity),
+          price: spareForm.price === '' ? null : Number(spareForm.price),
+        });
+        setSpareForm({ spare_id: '', quantity: 1, price: '' });
+      },
+      refreshSpares,
+      'Failed to add spare'
+    );
   };
 
   const removeService = (sid) => {
     if (!window.confirm('Remove this service from the request?')) return;
-    run(() => removeRequestService(id, sid), 'Failed to remove service');
+    run(() => removeRequestService(id, sid), refreshServices, 'Failed to remove service');
   };
-  const payThisBill = (billId) => {
-    if (!window.confirm('Mark this bill as paid?')) return;
-    run(() => payBill(billId), 'Failed to mark bill as paid');
-  };
+
   const removeSpare = (sid) => {
     if (!window.confirm('Remove this spare? Its quantity will be returned to stock.')) return;
-    run(() => removeRequestSpare(id, sid), 'Failed to remove spare');
+    run(() => removeRequestSpare(id, sid), refreshSpares, 'Failed to remove spare');
+  };
+
+  const payThisBill = (billId) => {
+    if (!window.confirm('Mark this bill as paid?')) return;
+    run(() => payBill(billId), refreshBill, 'Failed to mark bill as paid');
   };
 
   if (!request) return <p className="text-gray-500">{error || 'Loading...'}</p>;
@@ -164,7 +212,8 @@ export default function ServiceRequestDetail() {
               <select
                 className="input"
                 value={request.status}
-                onChange={(e) => run(() => updateStatus(id, e.target.value), 'Failed to update status')}
+                disabled={busy}
+                onChange={(e) => run(() => updateStatus(id, e.target.value), refreshRequest, 'Failed to update status')}
               >
                 <option value="pending">pending</option>
                 <option value="in_progress">in progress</option>
@@ -215,7 +264,11 @@ export default function ServiceRequestDetail() {
                     <td>{s.cost}</td>
                     {canEdit && (
                       <td className="text-right">
-                        <button onClick={() => removeService(s.service_id)} className="btn-danger">
+                        <button
+                          onClick={() => removeService(s.service_id)}
+                          disabled={busy}
+                          className="btn-danger disabled:opacity-50"
+                        >
                           Remove
                         </button>
                       </td>
@@ -226,11 +279,13 @@ export default function ServiceRequestDetail() {
             </table>
           </div>
         )}
+
         {canEdit && !canAdd && (
-        <p className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
-           Set the status to "in progress" to add services.
-        </p>
-         )}
+          <p className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+            Set the status to "in progress" to add services.
+          </p>
+        )}
+
         {canAdd && (
           <form onSubmit={submitService} className="mt-4 flex flex-wrap items-end gap-3 border-t border-gray-100 pt-4">
             <div className="min-w-[12rem] flex-1">
@@ -254,7 +309,9 @@ export default function ServiceRequestDetail() {
                 onChange={(e) => setSvcForm({ ...svcForm, cost: e.target.value })}
               />
             </div>
-            <button type="submit" className="btn">Add service</button>
+            <button type="submit" disabled={busy} className="btn">
+              {busy ? 'Saving...' : 'Add service'}
+            </button>
           </form>
         )}
       </section>
@@ -284,7 +341,11 @@ export default function ServiceRequestDetail() {
                     <td>{s.price}</td>
                     {canEdit && (
                       <td className="text-right">
-                        <button onClick={() => removeSpare(s.spare_id)} className="btn-danger">
+                        <button
+                          onClick={() => removeSpare(s.spare_id)}
+                          disabled={busy}
+                          className="btn-danger disabled:opacity-50"
+                        >
                           Remove
                         </button>
                       </td>
@@ -295,11 +356,13 @@ export default function ServiceRequestDetail() {
             </table>
           </div>
         )}
+
         {canEdit && !canAdd && (
           <p className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
             Set the status to "in progress" to add spares.
           </p>
         )}
+
         {canAdd && (
           <form onSubmit={submitSpare} className="mt-4 flex flex-wrap items-end gap-3 border-t border-gray-100 pt-4">
             <div className="min-w-[12rem] flex-1">
@@ -336,7 +399,9 @@ export default function ServiceRequestDetail() {
                 onChange={(e) => setSpareForm({ ...spareForm, price: e.target.value })}
               />
             </div>
-            <button type="submit" className="btn">Add spare</button>
+            <button type="submit" disabled={busy} className="btn">
+              {busy ? 'Saving...' : 'Add spare'}
+            </button>
           </form>
         )}
       </section>
@@ -353,14 +418,18 @@ export default function ServiceRequestDetail() {
             <div className="flex items-center gap-3">
               <StatusBadge status={bill.status} />
               {bill.status !== 'paid' && !isMechanic && (
-                <button onClick={() => payThisBill(bill.bill_id)} className="btn">
+                <button onClick={() => payThisBill(bill.bill_id)} disabled={busy} className="btn">
                   Mark as paid
                 </button>
               )}
             </div>
           </div>
         ) : completed && isStaff ? (
-          <button onClick={() => run(() => generateBill(id), 'Failed to generate bill')} className="btn">
+          <button
+            onClick={() => run(() => generateBill(id), refreshBill, 'Failed to generate bill')}
+            disabled={busy}
+            className="btn"
+          >
             Generate bill
           </button>
         ) : (

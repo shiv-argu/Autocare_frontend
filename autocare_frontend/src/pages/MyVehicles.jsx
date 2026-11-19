@@ -75,6 +75,7 @@ return (
           placeholder="Model no"
           value={form.model_no}
           onChange={handleChange}
+          required
         />
 
         <input
@@ -83,6 +84,7 @@ return (
           placeholder="Registration no"
           value={form.reg_no}
           onChange={handleChange}
+          required
         />
 
         <button type="submit" className="btn">

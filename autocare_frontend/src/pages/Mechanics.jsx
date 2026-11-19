@@ -48,7 +48,7 @@ export default function Mechanics() {
         <p className="text-sm text-gray-500">The team that works on service requests.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="card">
+      {/* <form onSubmit={handleSubmit} className="card">
         <h3 className="section-title">Add mechanic</h3>
         <div className="flex flex-wrap items-end gap-3">
           <div className="min-w-[12rem] flex-1">
@@ -65,7 +65,7 @@ export default function Mechanics() {
           </div>
           <button type="submit" className="btn">Add mechanic</button>
         </div>
-      </form>
+      </form> */}
 
       {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 

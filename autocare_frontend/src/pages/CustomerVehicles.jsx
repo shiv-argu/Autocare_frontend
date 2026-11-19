@@ -30,18 +30,32 @@ export default function CustomerVehicles() {
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    try {
-      await createVehicle({ ...form, customer_id: Number(id) });
-      setForm(emptyForm);
-      load();
-    } catch (err) {
-      setError(err.response?.data?.detail || 'Failed to add vehicle');
-    }
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError('');
 
+  if (
+    !form.vehicle_name.trim() ||
+    !form.model_no.trim() ||
+    !form.reg_no.trim()
+  ) {
+    setError('Please fill in Vehicle name, Model no, and Registration no.');
+    return;
+  }
+
+  try {
+    await createVehicle({
+      vehicle_name: form.vehicle_name.trim(),
+      model_no: form.model_no.trim(),
+      reg_no: form.reg_no.trim(),
+      customer_id: Number(id),
+    });
+    setForm(emptyForm);
+    load();
+  } catch (err) {
+    setError(err.response?.data?.detail || 'Failed to add vehicle');
+  }
+};
   const contact = [customer?.phone, customer?.email].filter(Boolean).join(' · ');
 
   return (
@@ -63,12 +77,12 @@ export default function CustomerVehicles() {
             <input className="input w-full" name="vehicle_name" placeholder="e.g. Honda City" value={form.vehicle_name} onChange={handleChange} required />
           </div>
           <div className="min-w-[10rem] flex-1">
-            <label className="field-label">Model no</label>
-            <input className="input w-full" name="model_no" placeholder="Model no" value={form.model_no} onChange={handleChange} />
+            <label className="field-label">Model name</label>
+            <input className="input w-full" name="model_no" placeholder="Model no" value={form.model_no} onChange={handleChange} required />
           </div>
           <div className="min-w-[10rem] flex-1">
             <label className="field-label">Registration no</label>
-            <input className="input w-full" name="reg_no" placeholder="Reg no" value={form.reg_no} onChange={handleChange} />
+            <input className="input w-full" name="reg_no" placeholder="Reg no" value={form.reg_no} onChange={handleChange} required />
           </div>
           <button type="submit" className="btn">Add vehicle</button>
         </div>

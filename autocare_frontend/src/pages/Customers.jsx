@@ -70,7 +70,7 @@ export default function Customers() {
         />
       </div>
 
-      {isStaff && (
+      {/* {isStaff && (
         <form onSubmit={handleSubmit} className="card">
           <h3 className="section-title">Add customer</h3>
           <div className="flex flex-wrap items-end gap-3">
@@ -89,7 +89,7 @@ export default function Customers() {
             <button type="submit" className="btn">Add customer</button>
           </div>
         </form>
-      )}
+      )} */}
 
       {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
