@@ -60,9 +60,12 @@ export default function CreateUser() {
     const email = form.email.trim();
     const payload = { email, password: form.password, role };
 
-    if (role === 'customer' && form.customer_name.trim()) {
+    if (role === 'customer' ) {
+      if (form.customer_name.trim()){
       payload.customer_name = form.customer_name.trim();
     }
+    payload.phone=form.phone.trim()||null;
+  }
 
     if (role === 'mechanic') {
       if (mechanicMode === 'existing') {
@@ -169,17 +172,31 @@ export default function CreateUser() {
         </div>
 
         {role === 'customer' && (
-          <div className="border-t border-gray-100 pt-4">
-            <label className="field-label">Customer name</label>
-            <input
-              className="input w-full"
-              name="customer_name"
-              placeholder="Full name (defaults to the email if left blank)"
-              value={form.customer_name}
-              onChange={handleChange}
-            />
-          </div>
-        )}
+            <div className="grid grid-cols-1 gap-4 border-t border-gray-100 pt-4 sm:grid-cols-2">
+              <div>
+                <label className="field-label">Customer name</label>
+                <input
+                  className="input w-full"
+                  name="customer_name"
+                  placeholder="Full name"
+                  value={form.customer_name}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <div>
+                <label className="field-label">Phone number</label>
+                <input
+                  className="input w-full"
+                  name="phone"
+                  type="tel"
+                  placeholder="Phone number"
+                  value={form.phone}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          )}
 
         {role === 'mechanic' && (
           <div className="space-y-4 border-t border-gray-100 pt-4">

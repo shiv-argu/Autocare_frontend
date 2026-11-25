@@ -70,26 +70,7 @@ export default function Customers() {
         />
       </div>
 
-      {/* {isStaff && (
-        <form onSubmit={handleSubmit} className="card">
-          <h3 className="section-title">Add customer</h3>
-          <div className="flex flex-wrap items-end gap-3">
-            <div className="min-w-[12rem] flex-1">
-              <label className="field-label">Name</label>
-              <input className="input w-full" name="customer_name" placeholder="Full name" value={form.customer_name} onChange={handleChange} required />
-            </div>
-            <div className="min-w-[10rem] flex-1">
-              <label className="field-label">Phone</label>
-              <input className="input w-full" name="phone" placeholder="Phone" value={form.phone} onChange={handleChange} />
-            </div>
-            <div className="min-w-[12rem] flex-1">
-              <label className="field-label">Email</label>
-              <input className="input w-full" name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} />
-            </div>
-            <button type="submit" className="btn">Add customer</button>
-          </div>
-        </form>
-      )} */}
+  
 
       {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
 
